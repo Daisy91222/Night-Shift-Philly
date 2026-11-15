@@ -1,0 +1,22 @@
+# 数据：原始下载和中间结果不进 git（体积大，可由 notebook 重新生成）
+data/raw/**/*
+!data/raw/**/
+!data/raw/**/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# 密钥
+.env
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# 网站构建产物
+site/_site/
+site/dist/
+site/node_modules/
+.quarto/
+
+.DS_Store

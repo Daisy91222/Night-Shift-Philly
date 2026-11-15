@@ -1,0 +1,22 @@
+name: night-shift
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - geopandas
+  - shapely
+  - pyproj
+  - pyarrow
+  - pandas
+  - numpy
+  - osmnx
+  - pandana
+  - requests
+  - python-dotenv
+  - matplotlib
+  - mapclassify
+  - panel
+  - hvplot
+  - geoviews
+  - jupyterlab
+  - ipykernel
