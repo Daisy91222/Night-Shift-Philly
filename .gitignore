@@ -1,9 +1,10 @@
-# 数据：原始下载和中间结果不进 git（体积大，可由 notebook 重新生成）
-data/raw/**/*
-!data/raw/**/
-!data/raw/**/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
+# 数据：原始文件 < 50 MB 提交，更大的不进 git，用 `python -m src.fetch` 重新下载；data/processed/ 全部提交
+data/raw/streetlights/street_poles.geojson
+data/raw/pums/csv_ppa.zip
+data/raw/osm/philly_walk.graphml
+# GTFS 只提交 gtfs_public.zip；google_bus.zip 和解压出的文件由 fetch_gtfs 从它生成
+data/raw/gtfs/google_bus.zip
+data/raw/gtfs/google_bus/
 
 # 密钥
 .env
@@ -12,6 +13,8 @@ data/processed/*
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+# OSMnx 的 Overpass 缓存
+cache/
 
 # 网站构建产物
 site/_site/

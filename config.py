@@ -27,6 +27,7 @@ CRS_WGS84 = "EPSG:4326"
 STATE_FIPS = "42"
 COUNTY_FIPS = "101"  # 费城县 = 费城市
 PLACE_NAME = "Philadelphia, Pennsylvania, USA"
+PHL_POWPUMA = "03200"  # PUMS 在费城工作 = POWSP 042 且 POWPUMA 03200（全市 11 个 PUMA 合一，来源 IPUMS 对照表）
 
 FT_PER_M = 3.280833333  # 美国测量英尺
 
@@ -50,8 +51,10 @@ EVENING_DEPART = ("16:00", "21:00")  # 小夜班出发时段，回程大致落�
 ACS_YEAR = 2024        # ACS 5 年版 2020–2024
 PUMS_YEAR = 2024       # PUMS 5 年版 2020–2024
 BLOCK_POP_YEAR = 2020  # 2020 年人口普查 PL 94-171
-LODES_YEAR = None      # 待确认：取最新可用年份
-GTFS_SERVICE_DATE = None  # 待确认：代表性工作日，格式 "YYYYMMDD"
+LODES_YEAR = 2024      # LODES8 宾州最新年份（2026-10 发布），WAC 与 OD 同年
+OD_JOB_TYPE = "JT00"   # OD 与 WAC 一致，用全部工作
+PUMS_STATES = ["pa"]   # 只用宾州居民；按 LODES，宾州居民占费城岗位的 86.6%，其余主要是 NJ/DE 通勤者
+GTFS_SERVICE_DATE = "20261118"  # 代表性工作日（周三）：feed 有效期 20261101–20270220，避开感恩节和年底节假日
 
 # ACS 汇总表变量（取数前对照 Census API 变量列表核对）
 ACS_VARS = {
@@ -60,6 +63,12 @@ ACS_VARS = {
     "B08302_015E": "depart_1600_2359",    # 4:00–11:59 p.m.（小夜班的上级档）
     "B08141_001E": "commuters_total",     # 按可用车辆数：总数
     "B08141_002E": "commuters_no_vehicle",  # 无车
+    # 第 6b 步补充模型
+    "B17001_001E": "pov_universe",        # 贫困状况：总数
+    "B17001_002E": "pov_below",           # 低于贫困线
+    "B03002_001E": "pop_total",           # 种族与西语裔：总数
+    "B03002_004E": "pop_nh_black",        # 非西语裔黑人
+    "B03002_012E": "pop_hispanic",        # 西语裔
 }
 
 # ---------------------------------------------------------------------------
@@ -67,22 +76,19 @@ ACS_VARS = {
 # ---------------------------------------------------------------------------
 BLOCK_NODE_BUFFER_M = 15
 
-# LODES WAC 夜班集中行业；三个版本用于工作端敏感性检验
-WORK_SECTORS = {
-    "CNS08": "transportation_warehousing",
-    "CNS16": "health_care_social_assistance",
-    "CNS18": "accommodation_food",
-}
-WORK_VERSIONS = {
-    "all": ["CNS08", "CNS16", "CNS18"],
-    "health": ["CNS16"],
-    "nonhealth": ["CNS08", "CNS18"],
+# LODES WAC 20 个行业全部进入工作端：街区值 = Σₖ CNSk 岗位数 × p̃ₖ（p̃ₖ 来自第 1 步 01_pums_params.json）
+WORK_SECTORS = [f"CNS{i:02d}" for i in range(1, 21)]
+WORK_VERSIONS = {  # 第 6c 步敏感性检验用的工作端算法
+    "pums": "PUMS 全行业加权（主结果）",
+    "atus": "ATUS 全国比例加权（data/raw/atus/atus_night_share.csv）",
+    "three_sector": "原来的 3 个行业 CNS08/16/18，不加权",
+    "pums_no_cns16": "PUMS 加权，去掉医疗 CNS16",
 }
 
 # ---------------------------------------------------------------------------
 # 第 3 步：夜间服务
 # ---------------------------------------------------------------------------
-OWL_MIN_TRIPS = 1  # 工作日 00:00–05:00 至少 1 班才算 Owl 站点
+OWL_MIN_TRIPS = 3  # 站点 × 线路在工作日 00:00–05:00 至少 3 班才算 Owl（平均间隔不超过 100 分钟）
 # 发车间隔按“站点 × 线路”独立计算：NIGHT_WINDOW_MIN ÷ 该线在时间窗内的班次
 
 # ---------------------------------------------------------------------------
@@ -99,6 +105,8 @@ SCHEDULE_DELAY_FACTOR = 0.5  # 时刻表损失 = 0.5 × 单线发车间隔
 # ---------------------------------------------------------------------------
 OUTAGE_WINDOW = ("2025-11-01", "2026-10-31")  # LED 换装完成后 12 个月
 OUTAGE_DEDUP_M = 15            # 15 m 内且时间重叠的报告合并为一次故障
+LIGHT_COUNT_COL = "nlumin"     # 有效密度按灯头数计；nlumin 为空或 0 的杆计 0
+OUTAGE_SERVICE_NAMES = ["Street Light Outage"]  # 311 只用街灯故障，不含 Alley Light Outage
 POLE_SNAP_MAX_M = 20           # 路灯挂到最近边的最大距离（初始值，可调）
 POORLY_LIT_QUANTILE = 0.25     # 有效路灯密度最低 25% 为照明不足
 STOP_LIGHTING_RADIUS_M = 50    # 站点周围半径内的所有边；待调研后调整
